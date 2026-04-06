@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Notes App — Architecture</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: true, theme: 'default' });</script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1200px; margin: 40px auto; padding: 0 24px; color: #111; }
+    h1 { font-size: 1.8rem; margin-bottom: 4px; }
+    .subtitle { color: #6b7280; margin-bottom: 48px; font-size: 0.95rem; }
+    section { margin-bottom: 64px; }
+    h2 { font-size: 1.2rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 20px; }
+    .mermaid { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 28px; overflow-x: auto; }
+    .desc { color: #6b7280; font-size: 0.88rem; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<h1>📝 Notes App — Architecture</h1>
+<p class="subtitle">React 19 + TypeScript + Vite · JSON Server 백엔드 · 자동 생성됨</p>
+
+<!-- ───────────────────────────── 1. Component Tree ───────────────────────────── -->
+<section>
+  <h2>1. Component Tree</h2>
+  <p class="desc">렌더 계층 구조와 props 전달 경로. 화살표 레이블은 전달되는 주요 props.</p>
+  <div class="mermaid">
+graph TD
+    main["main.tsx"]:::entry --> App
+
+    App["App.tsx\n─────────────\nselectedNoteId: string|null\nisCreating: boolean"]:::app
+
+    App -->|"onNewNote"| Layout["Layout.tsx\n─────────────\nsidebar slot\nmain slot"]:::comp
+
+    App -->|"selectedNoteId\nonSelect"| NoteList["NoteList.tsx"]:::comp
+    App -->|"selectedNoteId\nisCreating\nonDone"| NoteEditor["NoteEditor.tsx\n─────────────\ntitle: string\ncontent: string\nsaving: boolean"]:::comp
+
+    Layout -->|renders sidebar| NoteList
+    Layout -->|renders main| NoteEditor
+
+    NoteList -->|"note\nisSelected\nonSelect\nonDelete"| NoteItem["NoteItem.tsx\n─────────────\n순수 표시 컴포넌트"]:::comp
+
+    App -.->|wraps all| NotesProvider["NotesProvider\n(NotesContext.tsx)\n─────────────\nnotes[]\nloading\nerror"]:::ctx
+
+    NoteList -.->|useNotes| NotesProvider
+    NoteEditor -.->|useNotes| NotesProvider
+
+    classDef entry fill:#fef3c7,stroke:#d97706
+    classDef app fill:#dbeafe,stroke:#3b82f6
+    classDef comp fill:#f0fdf4,stroke:#22c55e
+    classDef ctx fill:#fce7f3,stroke:#ec4899
+  </div>
+</section>
+
+<!-- ───────────────────────────── 2. Data Flow ───────────────────────────── -->
+<section>
+  <h2>2. Data Flow</h2>
+  <p class="desc">사용자 액션에서 JSON Server까지의 데이터 흐름과 상태 갱신 사이클.</p>
+  <div class="mermaid">
+flowchart LR
+    subgraph UI["UI Layer"]
+        User(["사용자"])
+        NE["NoteEditor\n저장 버튼 클릭"]
+        NL["NoteList\n삭제 버튼 클릭"]
+    end
+
+    subgraph CTX["Context Layer (NotesContext)"]
+        createNote["createNote()"]
+        updateNote["updateNote()"]
+        deleteNote["deleteNote()"]
+        setNotes[/"setNotes() 갱신"/]
+    end
+
+    subgraph API["API Layer (api/notes.ts)"]
+        apiCreate["createNote()\nPOST /notes"]
+        apiUpdate["updateNote()\nPATCH /notes/:id"]
+        apiDelete["deleteNote()\nDELETE /notes/:id"]
+        apiGet["fetchNotes()\nGET /notes"]
+    end
+
+    subgraph SERVER["JSON Server :3001"]
+        DB[("db.json")]
+    end
+
+    User -->|"새 노트 저장"| NE
+    User -->|"삭제"| NL
+
+    NE -->|"isCreating=true"| createNote
+    NE -->|"selectedNoteId 있음"| updateNote
+    NL --> deleteNote
+
+    createNote --> apiCreate
+    updateNote --> apiUpdate
+    deleteNote --> apiDelete
+
+    apiCreate -->|"POST"| DB
+    apiUpdate -->|"PATCH"| DB
+    apiDelete -->|"DELETE"| DB
+    DB -->|"응답 Note 객체"| setNotes
+
+    apiGet -->|"GET (초기 마운트)"| DB
+    DB -->|"Note[]"| setNotes
+    setNotes -->|"리렌더"| NL
+    setNotes -->|"리렌더"| NE
+  </div>
+</section>
+
+<!-- ───────────────────────────── 3. State Map ───────────────────────────── -->
+<section>
+  <h2>3. State Map</h2>
+  <p class="desc">3계층 상태 분리 구조. 각 계층이 소유하는 상태값과 책임 범위.</p>
+  <div class="mermaid">
+graph TB
+    subgraph L1["서버 상태 — NotesContext.tsx"]
+        notes[/"notes: Note[]"/]
+        loading[/"loading: boolean"/]
+        error[/"error: string | null"/]
+        methods["createNote()\nupdateNote()\ndeleteNote()"]
+    end
+
+    subgraph L2["UI 상태 — App.tsx"]
+        selId[/"selectedNoteId: string | null"/]
+        isCreating[/"isCreating: boolean"/]
+        handlers["handleSelectNote()\nhandleNewNote()\nhandleDone()"]
+    end
+
+    subgraph L3["폼 로컬 상태 — NoteEditor.tsx"]
+        title[/"title: string"/]
+        content[/"content: string"/]
+        saving[/"saving: boolean"/]
+    end
+
+    L1 -->|"useNotes() 훅으로 구독"| NoteList_box["NoteList\nNoteEditor"]
+    L2 -->|"props로 전달"| NoteList_box
+    L2 -->|"props로 전달"| NoteEditor_box["NoteEditor"]
+    L3 -->|"controlled inputs"| Form["폼 UI\n(title input, content textarea)"]
+
+    style L1 fill:#fce7f3,stroke:#ec4899
+    style L2 fill:#dbeafe,stroke:#3b82f6
+    style L3 fill:#f0fdf4,stroke:#22c55e
+  </div>
+</section>
+
+</body>
+</html>
