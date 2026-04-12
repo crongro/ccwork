@@ -43,25 +43,29 @@ src/
 ## 구현 패턴
 
 ### 컴포넌트
+
 - **named export** 사용 (`export function ComponentName`). `App.tsx`만 예외적으로 default export.
 - Props 타입은 컴포넌트 바로 위에 `interface ${ComponentName}Props`로 정의하고 파라미터에서 직접 destructuring.
 - 상태에 따른 early return(loading, error, empty)을 JSX 앞에 배치.
 
 ### 상태 관리 (3계층 분리)
-| 계층 | 위치 | 내용 |
-|------|------|------|
-| 서버 상태 | `NotesContext` | `notes[]`, `loading`, `error` |
-| UI 상태 | `App.tsx` | `selectedNoteId`, `isCreating` |
-| 폼 로컬 상태 | `NoteEditor` | `title`, `content`, `saving` |
+
+| 계층         | 위치           | 내용                           |
+| ------------ | -------------- | ------------------------------ |
+| 서버 상태    | `NotesContext` | `notes[]`, `loading`, `error`  |
+| UI 상태      | `App.tsx`      | `selectedNoteId`, `isCreating` |
+| 폼 로컬 상태 | `NoteEditor`   | `title`, `content`, `saving`   |
 
 컴포넌트는 직접 API를 호출하지 않는다. 반드시 `useNotes()` 훅을 통해 Context 함수를 사용한다.
 
 ### API 호출
+
 - `src/api/notes.ts`는 순수 fetch 함수만 담는다. 상태 변경 없음.
 - 에러 처리: `!res.ok`이면 `throw new Error(메시지)`.
 - Context에서 API 호출 후 응답값으로 `setNotes`를 즉시 갱신 (낙관적 업데이트 없음).
 
 ### 네이밍
+
 - 이벤트 핸들러 prop: `on` + PascalCase (`onSelect`, `onDelete`, `onDone`)
 - 이벤트 핸들러 함수: `handle` + PascalCase (`handleSave`, `handleSelectNote`)
 - boolean prop: `is` + PascalCase (`isSelected`, `isCreating`)
@@ -75,6 +79,20 @@ src/
 - **useEffect 의존성 누락**: `NoteEditor`의 useEffect가 `selectedNote`를 의존성에서 제외하고 `eslint-disable` 주석으로 억제 중 (`NoteEditor.tsx:27`).
 
 ---
+
+## 커밋 규칙
+
+Conventional Commits 형식을 강제한다 (commitlint + husky).
+
+```
+<type>: <제목>
+
+<본문 — 최소 2줄>
+```
+
+- **type**: `feat` | `fix` | `chore` | `refactor` | `test` | `docs` | `style`
+- 제목 필수, 본문 필수 (비어있거나 1줄이면 커밋 차단)
+- pre-commit: lint-staged로 staged `.ts/.tsx` 파일에 ESLint + Prettier 자동 실행
 
 ## 테스트 환경
 
