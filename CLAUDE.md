@@ -80,6 +80,16 @@ src/
 
 ---
 
+## 디자인 시스템
+
+모든 스타일/UI 작업은 **`design-system` skill을 반드시 호출**해서 진행한다.
+
+- 상세 스펙: `docs/design-system/` (토큰, 컴포넌트, Do/Don't 파일 분할)
+- 스타일 관련 파일(`.tsx`, `.css`) 저장 시 PostToolUse hook이 금지 패턴을 자동 검사한다.
+- 핵심 원칙: **No-Line** (border 금지, 톤 시프트), **Tonal Layering** (shadow 대신 surface 계층), **Inter 단일 폰트**.
+
+---
+
 ## 커밋 규칙
 
 Conventional Commits 형식을 강제한다 (commitlint + husky).
