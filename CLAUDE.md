@@ -85,8 +85,20 @@ src/
 모든 스타일/UI 작업은 **`design-system` skill을 반드시 호출**해서 진행한다.
 
 - 상세 스펙: `docs/design-system/` (토큰, 컴포넌트, Do/Don't 파일 분할)
-- 스타일 관련 파일(`.tsx`, `.css`) 저장 시 PostToolUse hook이 금지 패턴을 자동 검사한다.
 - 핵심 원칙: **No-Line** (border 금지, 톤 시프트), **Tonal Layering** (shadow 대신 surface 계층), **Inter 단일 폰트**.
+
+**작업 순서**
+
+1. `docs/design-system/dont.md` 먼저 읽어 금지 패턴 파악
+2. 작업 대상(색/폰트/간격/컴포넌트)에 맞는 토큰 파일만 선택적으로 Read
+3. 구현 — 임의의 HEX·px 값 대신 토큰 사용
+4. `docs/design-system/do.md` 체크리스트로 자가 리뷰
+
+**Hook 검사**
+
+`.ts(x)/.js(x)/.css/.scss` 파일 저장 시 PostToolUse hook(`.claude/hooks/design-system-check.sh`)이 금지 패턴을 grep한다. 검사 대상: 순수 검정(`#000`/`black`), `1px solid` border, Tailwind `border*`·`divide-*` 유틸, `<hr>`, `border-bottom`, `rgba(0,...)` 기반 `box-shadow`. 위반 시 exit 2로 차단되며 즉시 재수정한다.
+
+Hook은 `.claude/settings.json`에 등록되어 있어 클론 후 별도 설정 없이 동작한다.
 
 ---
 
