@@ -181,4 +181,79 @@ describe('NoteEditor', () => {
 
     expect(updateNote).toHaveBeenCalledWith('legacy', expect.objectContaining({ tags: [] }));
   });
+
+  it('should exclude removed tag from updateNote payload when × button is clicked then save', async () => {
+    mockNotes = [
+      {
+        id: 'n1',
+        title: '제목',
+        content: '본문',
+        createdAt: '',
+        updatedAt: '',
+        tags: ['work', 'study', 'idea'],
+      },
+    ];
+    updateNote.mockResolvedValue(undefined);
+
+    render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
+
+    const studyChip = screen.getByText('study').closest('[data-testid="tag-chip"]');
+    const removeBtn = studyChip!.querySelector(
+      'button[aria-label="태그 삭제"]',
+    ) as HTMLButtonElement;
+    await userEvent.click(removeBtn);
+    await userEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(updateNote).toHaveBeenCalledWith(
+      'n1',
+      expect.objectContaining({ tags: ['work', 'idea'] }),
+    );
+  });
+
+  it('should exclude last tag from updateNote payload when Backspace is pressed on empty input then save', async () => {
+    mockNotes = [
+      {
+        id: 'n1',
+        title: '제목',
+        content: '본문',
+        createdAt: '',
+        updatedAt: '',
+        tags: ['work', 'study'],
+      },
+    ];
+    updateNote.mockResolvedValue(undefined);
+
+    render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
+
+    const tagInput = screen.getByPlaceholderText('태그 추가');
+    await userEvent.type(tagInput, '{Backspace}');
+    await userEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(updateNote).toHaveBeenCalledWith('n1', expect.objectContaining({ tags: ['work'] }));
+  });
+
+  it('should send tags: [] in updateNote payload when all tags are removed via × button then save', async () => {
+    mockNotes = [
+      {
+        id: 'n1',
+        title: '제목',
+        content: '본문',
+        createdAt: '',
+        updatedAt: '',
+        tags: ['work', 'study'],
+      },
+    ];
+    updateNote.mockResolvedValue(undefined);
+
+    render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
+
+    for (const tag of ['work', 'study']) {
+      const chip = screen.getByText(tag).closest('[data-testid="tag-chip"]');
+      const removeBtn = chip!.querySelector('button[aria-label="태그 삭제"]') as HTMLButtonElement;
+      await userEvent.click(removeBtn);
+    }
+    await userEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(updateNote).toHaveBeenCalledWith('n1', expect.objectContaining({ tags: [] }));
+  });
 });

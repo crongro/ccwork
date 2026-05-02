@@ -16,7 +16,7 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
   const [saving, setSaving] = useState(false);
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
-  const { tags, input, setInput, handleKeyDown } = useTagInput(selectedNote?.tags ?? []);
+  const { tags, input, setInput, removeTag, handleKeyDown } = useTagInput(selectedNote?.tags ?? []);
 
   useEffect(() => {
     if (selectedNote) {
@@ -77,6 +77,7 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
           input={input}
           onInputChange={setInput}
           onKeyDown={handleKeyDown}
+          onRemove={removeTag}
         />
       </div>
 
