@@ -256,4 +256,21 @@ describe('NoteEditor', () => {
 
     expect(updateNote).toHaveBeenCalledWith('n1', expect.objectContaining({ tags: [] }));
   });
+
+  it('should render tag input as disabled when note has maxTags initial tags', () => {
+    mockNotes = [
+      {
+        id: 'n1',
+        title: '제목',
+        content: '본문',
+        createdAt: '',
+        updatedAt: '',
+        tags: ['t1', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9', 't10'],
+      },
+    ];
+
+    render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
+
+    expect(screen.getByPlaceholderText('태그 추가')).toBeDisabled();
+  });
 });

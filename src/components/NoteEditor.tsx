@@ -16,7 +16,10 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
   const [saving, setSaving] = useState(false);
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
-  const { tags, input, setInput, removeTag, handleKeyDown } = useTagInput(selectedNote?.tags ?? []);
+  const { tags, input, isFull, setInput, removeTag, handleKeyDown } = useTagInput(
+    selectedNote?.tags ?? [],
+    { maxTags: 10, maxLen: 15 },
+  );
 
   useEffect(() => {
     if (selectedNote) {
@@ -75,6 +78,7 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
         <TagChipInput
           tags={tags}
           input={input}
+          isFull={isFull}
           onInputChange={setInput}
           onKeyDown={handleKeyDown}
           onRemove={removeTag}
