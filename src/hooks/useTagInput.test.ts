@@ -234,6 +234,22 @@ describe('useTagInput', () => {
   });
 
   describe('handleKeyDown', () => {
+    it('should not commit when Enter is pressed during IME composition', () => {
+      const { result } = renderHook(() => useTagInput([]));
+
+      act(() => result.current.setInput('일하기'));
+      act(() => {
+        result.current.handleKeyDown({
+          key: 'Enter',
+          nativeEvent: { isComposing: true },
+          preventDefault: () => {},
+        } as unknown as React.KeyboardEvent<HTMLInputElement>);
+      });
+
+      expect(result.current.tags).toEqual([]);
+      expect(result.current.input).toBe('일하기');
+    });
+
     it('should commit current input to tags when key is Enter', () => {
       const { result } = renderHook(() => useTagInput([]));
 

@@ -39,6 +39,7 @@ export function useTagInput(
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.nativeEvent?.isComposing) return;
     if (e.key === 'Enter') {
       commit();
     } else if (e.key === ',') {
