@@ -120,4 +120,34 @@ describe('TagChipInput', () => {
     expect(className).toMatch(/opacity-0/);
     expect(className).toMatch(/group-hover:opacity-100/);
   });
+
+  it('should render input as disabled when isFull is true', () => {
+    render(
+      <TagChipInput
+        tags={[]}
+        input=""
+        isFull={true}
+        onInputChange={vi.fn()}
+        onKeyDown={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('textbox')).toBeDisabled();
+  });
+
+  it('should render input as enabled when isFull is false', () => {
+    render(
+      <TagChipInput
+        tags={[]}
+        input=""
+        isFull={false}
+        onInputChange={vi.fn()}
+        onKeyDown={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('textbox')).not.toBeDisabled();
+  });
 });

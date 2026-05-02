@@ -33,6 +33,40 @@ describe('useTagInput', () => {
     expect(result.current.removeTag).toEqual(expect.any(Function));
   });
 
+  it('should expose isFull in returned object when initialized with options', () => {
+    const { result } = renderHook(() => useTagInput([], { maxTags: 3, maxLen: 5 }));
+
+    expect(result.current).toMatchObject({ isFull: expect.any(Boolean) });
+  });
+
+  it('should not expose setTags in returned object when initialized', () => {
+    const { result } = renderHook(() => useTagInput([]));
+
+    expect(result.current).not.toHaveProperty('setTags');
+  });
+
+  describe('isFull', () => {
+    it('should be false when tags count is below maxTags', () => {
+      const { result } = renderHook(() => useTagInput(['a'], { maxTags: 3 }));
+
+      expect(result.current.isFull).toBe(false);
+    });
+
+    it('should be true when tags count equals maxTags', () => {
+      const { result } = renderHook(() => useTagInput(['a', 'b', 'c'], { maxTags: 3 }));
+
+      expect(result.current.isFull).toBe(true);
+    });
+
+    it('should become false after removeTag is called on a full tag list', () => {
+      const { result } = renderHook(() => useTagInput(['a', 'b', 'c'], { maxTags: 3 }));
+
+      act(() => result.current.removeTag('a'));
+
+      expect(result.current.isFull).toBe(false);
+    });
+  });
+
   describe('setInput', () => {
     it('should update input when called', () => {
       const { result } = renderHook(() => useTagInput([]));
@@ -40,6 +74,30 @@ describe('useTagInput', () => {
       act(() => result.current.setInput('hello'));
 
       expect(result.current.input).toBe('hello');
+    });
+
+    it('should update input when value length is within maxLen', () => {
+      const { result } = renderHook(() => useTagInput([], { maxLen: 5 }));
+
+      act(() => result.current.setInput('abc'));
+
+      expect(result.current.input).toBe('abc');
+    });
+
+    it('should update input when value length equals maxLen exactly', () => {
+      const { result } = renderHook(() => useTagInput([], { maxLen: 5 }));
+
+      act(() => result.current.setInput('abcde'));
+
+      expect(result.current.input).toBe('abcde');
+    });
+
+    it('should not update input when value length exceeds maxLen', () => {
+      const { result } = renderHook(() => useTagInput([], { maxLen: 5 }));
+
+      act(() => result.current.setInput('abcdef'));
+
+      expect(result.current.input).toBe('');
     });
   });
 
@@ -97,6 +155,46 @@ describe('useTagInput', () => {
 
       expect(result.current.tags).toEqual([]);
       expect(result.current.input).toBe('');
+    });
+
+    it('should add tag when input does not match any existing tag case-insensitively', () => {
+      const { result } = renderHook(() => useTagInput(['work']));
+
+      act(() => result.current.setInput('study'));
+      act(() => result.current.commit());
+
+      expect(result.current.tags).toEqual(['work', 'study']);
+      expect(result.current.input).toBe('');
+    });
+
+    it('should not add tag and should clear input when input is same-case duplicate of existing tag', () => {
+      const { result } = renderHook(() => useTagInput(['work']));
+
+      act(() => result.current.setInput('work'));
+      act(() => result.current.commit());
+
+      expect(result.current.tags).toEqual(['work']);
+      expect(result.current.input).toBe('');
+    });
+
+    it('should not add tag and should clear input when input is different-case duplicate of existing tag', () => {
+      const { result } = renderHook(() => useTagInput(['work']));
+
+      act(() => result.current.setInput('Work'));
+      act(() => result.current.commit());
+
+      expect(result.current.tags).toEqual(['work']);
+      expect(result.current.input).toBe('');
+    });
+
+    it('should not change tags or input when isFull is true', () => {
+      const { result } = renderHook(() => useTagInput(['a', 'b', 'c'], { maxTags: 3 }));
+
+      act(() => result.current.setInput('new'));
+      act(() => result.current.commit());
+
+      expect(result.current.tags).toEqual(['a', 'b', 'c']);
+      expect(result.current.input).toBe('new');
     });
   });
 

@@ -3,6 +3,7 @@ import type React from 'react';
 interface TagChipInputProps {
   tags: readonly string[];
   input: string;
+  isFull?: boolean;
   onInputChange: (value: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onRemove: (tag: string) => void;
@@ -11,6 +12,7 @@ interface TagChipInputProps {
 export function TagChipInput({
   tags,
   input,
+  isFull = false,
   onInputChange,
   onKeyDown,
   onRemove,
@@ -40,6 +42,7 @@ export function TagChipInput({
         onChange={(e) => onInputChange(e.target.value)}
         onKeyDown={onKeyDown}
         placeholder="태그 추가"
+        disabled={isFull}
         className="flex-1 min-w-[8rem] bg-transparent outline-none text-sm text-[#2b3437] placeholder:text-[#586064]/60"
       />
     </div>
