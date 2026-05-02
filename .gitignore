@@ -23,6 +23,9 @@ coverage/
 # Claude Code
 .claude/settings.local.json
 
+# JSON Server local data (use db.seed.json as initial state)
+db.json
+
 # Editor
 .vscode/*
 !.vscode/extensions.json
