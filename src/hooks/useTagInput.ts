@@ -12,6 +12,7 @@ export function useTagInput(
   commit: () => void;
   removeTag: (tag: string) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  reset: (nextTags: string[]) => void;
 } {
   const maxTags = options?.maxTags ?? 10;
   const maxLen = options?.maxLen ?? 15;
@@ -40,10 +41,18 @@ export function useTagInput(
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       commit();
+    } else if (e.key === ',') {
+      e.preventDefault();
+      commit();
     } else if (e.key === 'Backspace' && input === '' && tags.length > 0) {
       setTags(tags.slice(0, -1));
     }
   };
 
-  return { tags, input, isFull, setInput, commit, removeTag, handleKeyDown };
+  const reset = (nextTags: string[]) => {
+    setTags([...nextTags]);
+    setInputState('');
+  };
+
+  return { tags, input, isFull, setInput, commit, removeTag, handleKeyDown, reset };
 }

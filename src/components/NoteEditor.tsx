@@ -16,7 +16,7 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
   const [saving, setSaving] = useState(false);
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
-  const { tags, input, isFull, setInput, removeTag, handleKeyDown } = useTagInput(
+  const { tags, input, isFull, setInput, removeTag, handleKeyDown, reset } = useTagInput(
     selectedNote?.tags ?? [],
     { maxTags: 10, maxLen: 15 },
   );
@@ -25,9 +25,11 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
     if (selectedNote) {
       setTitle(selectedNote.title);
       setContent(selectedNote.content);
+      reset(selectedNote.tags);
     } else if (isCreating) {
       setTitle('');
       setContent('');
+      reset([]);
     }
   }, [selectedNoteId, isCreating]); // eslint-disable-line react-hooks/exhaustive-deps
 

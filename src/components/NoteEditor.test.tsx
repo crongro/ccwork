@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NoteEditor } from './NoteEditor';
 import type { Note } from '../types/note';
@@ -88,7 +88,7 @@ describe('NoteEditor', () => {
     render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
 
     const title = screen.getByPlaceholderText('제목');
-    const tagInput = screen.getByPlaceholderText('태그 추가');
+    const tagInput = screen.getByTestId('tag-chip-input');
 
     expect(title.nextElementSibling).toContainElement(tagInput);
   });
@@ -108,7 +108,7 @@ describe('NoteEditor', () => {
 
     render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
 
-    const tagInput = screen.getByPlaceholderText('태그 추가');
+    const tagInput = screen.getByTestId('tag-chip-input');
     await userEvent.type(tagInput, 'work{Enter}');
     await userEvent.click(screen.getByRole('button', { name: '저장' }));
 
@@ -130,7 +130,7 @@ describe('NoteEditor', () => {
 
     render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
 
-    const tagInput = screen.getByPlaceholderText('태그 추가');
+    const tagInput = screen.getByTestId('tag-chip-input');
     await userEvent.type(tagInput, 'study{Enter}');
     await userEvent.click(screen.getByRole('button', { name: '저장' }));
 
@@ -155,7 +155,7 @@ describe('NoteEditor', () => {
 
     render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
 
-    const tagInput = screen.getByPlaceholderText('태그 추가');
+    const tagInput = screen.getByTestId('tag-chip-input');
     await userEvent.type(tagInput, '{Enter}');
     await userEvent.click(screen.getByRole('button', { name: '저장' }));
 
@@ -225,7 +225,7 @@ describe('NoteEditor', () => {
 
     render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
 
-    const tagInput = screen.getByPlaceholderText('태그 추가');
+    const tagInput = screen.getByTestId('tag-chip-input');
     await userEvent.type(tagInput, '{Backspace}');
     await userEvent.click(screen.getByRole('button', { name: '저장' }));
 
@@ -271,6 +271,44 @@ describe('NoteEditor', () => {
 
     render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
 
-    expect(screen.getByPlaceholderText('태그 추가')).toBeDisabled();
+    expect(screen.getByTestId('tag-chip-input')).toBeDisabled();
+  });
+
+  it('should show note B tags and clear input when selectedNoteId changes from note A to note B', async () => {
+    mockNotes = [
+      {
+        id: 'a',
+        title: '노트 A',
+        content: '',
+        createdAt: '',
+        updatedAt: '',
+        tags: ['alpha'],
+      },
+      {
+        id: 'b',
+        title: '노트 B',
+        content: '',
+        createdAt: '',
+        updatedAt: '',
+        tags: ['beta', 'gamma'],
+      },
+    ];
+
+    const { rerender } = render(
+      <NoteEditor selectedNoteId="a" isCreating={false} onDone={vi.fn()} />,
+    );
+
+    const tagInput = screen.getByTestId('tag-chip-input');
+    await userEvent.type(tagInput, 'draft');
+
+    rerender(<NoteEditor selectedNoteId="b" isCreating={false} onDone={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('beta')).toBeInTheDocument();
+      expect(screen.getByText('gamma')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('alpha')).not.toBeInTheDocument();
+    expect(screen.queryByText('draft')).not.toBeInTheDocument();
+    expect(screen.getByTestId('tag-chip-input')).toHaveValue('');
   });
 });

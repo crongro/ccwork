@@ -249,7 +249,7 @@ describe('useTagInput', () => {
       expect(result.current.input).toBe('');
     });
 
-    it.each([['a'], ['Backspace'], [',']])('should not commit when key is %s', (key) => {
+    it.each([['a'], ['Backspace']])('should not commit when key is %s', (key) => {
       const { result } = renderHook(() => useTagInput([]));
 
       act(() => result.current.setInput('work'));
@@ -336,5 +336,94 @@ describe('useTagInput', () => {
         expect(result.current.tags).toEqual(['work']);
       },
     );
+
+    it('should commit current input to tags when comma key is pressed', () => {
+      const { result } = renderHook(() => useTagInput([]));
+
+      act(() => result.current.setInput('work'));
+      act(() => {
+        result.current.handleKeyDown({
+          key: ',',
+          preventDefault: () => {},
+        } as React.KeyboardEvent<HTMLInputElement>);
+      });
+
+      expect(result.current.tags).toEqual(['work']);
+    });
+
+    it('should clear input when comma key is pressed and input is non-empty', () => {
+      const { result } = renderHook(() => useTagInput([]));
+
+      act(() => result.current.setInput('work'));
+      act(() => {
+        result.current.handleKeyDown({
+          key: ',',
+          preventDefault: () => {},
+        } as React.KeyboardEvent<HTMLInputElement>);
+      });
+
+      expect(result.current.input).toBe('');
+    });
+
+    it('should not add tag when comma is pressed and input is empty', () => {
+      const { result } = renderHook(() => useTagInput(['existing']));
+
+      act(() => {
+        result.current.handleKeyDown({
+          key: ',',
+          preventDefault: () => {},
+        } as React.KeyboardEvent<HTMLInputElement>);
+      });
+
+      expect(result.current.tags).toEqual(['existing']);
+    });
+
+    it('should call preventDefault when comma key is pressed', () => {
+      const { result } = renderHook(() => useTagInput([]));
+      const preventDefault = vi.fn();
+
+      act(() => result.current.setInput('work'));
+      act(() => {
+        result.current.handleKeyDown({
+          key: ',',
+          preventDefault,
+        } as unknown as React.KeyboardEvent<HTMLInputElement>);
+      });
+
+      expect(preventDefault).toHaveBeenCalled();
+    });
+  });
+
+  describe('reset', () => {
+    it('should replace tags with nextTags when called', () => {
+      const { result } = renderHook(() => useTagInput(['old']));
+
+      act(() => result.current.reset(['alpha', 'beta']));
+
+      expect(result.current.tags).toEqual(['alpha', 'beta']);
+    });
+
+    it('should reset input to empty string when called', () => {
+      const { result } = renderHook(() => useTagInput([]));
+
+      act(() => result.current.setInput('draft'));
+      act(() => result.current.reset(['alpha']));
+
+      expect(result.current.input).toBe('');
+    });
+
+    it('should set tags to [] when called with empty array', () => {
+      const { result } = renderHook(() => useTagInput(['work', 'study']));
+
+      act(() => result.current.reset([]));
+
+      expect(result.current.tags).toEqual([]);
+    });
+  });
+
+  it('should expose reset in returned object when initialized', () => {
+    const { result } = renderHook(() => useTagInput([]));
+
+    expect(result.current.reset).toEqual(expect.any(Function));
   });
 });
