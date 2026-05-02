@@ -6,7 +6,7 @@
   <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
   <script>mermaid.initialize({ startOnLoad: true, theme: 'default' });</script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1200px; margin: 40px auto; padding: 0 24px; color: #111; }
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; max-width: 1200px; margin: 40px auto; padding: 0 24px; color: #111; }
     h1 { font-size: 1.8rem; margin-bottom: 4px; }
     .subtitle { color: #6b7280; margin-bottom: 48px; font-size: 0.95rem; }
     section { margin-bottom: 64px; }
@@ -17,89 +17,85 @@
 </head>
 <body>
 
-<h1>📝 Notes App — Architecture</h1>
-<p class="subtitle">React 19 + TypeScript + Vite · JSON Server 백엔드 · 2026-04-06 생성</p>
+<h1>Notes App - Architecture</h1>
+<p class="subtitle">React 19 + TypeScript + Vite · JSON Server 백엔드 · 2026-05-03 업데이트 (TagChipInput / useTagInput 추가)</p>
 
-<!-- ───────────────────────────── 1. Component Tree ───────────────────────────── -->
 <section>
   <h2>1. Component Tree</h2>
-  <p class="desc">렌더 계층 구조와 props 전달 경로. 실선 = props, 점선 = useNotes() 훅 구독.</p>
+  <p class="desc">렌더 계층 구조와 props 전달 경로. 실선 = props, 점선 = 훅 구독.</p>
   <div class="mermaid">
 graph TD
     main["main.tsx"]:::entry --> App
-
-    App["App.tsx\n─────────────\nselectedNoteId: string | null\nisCreating: boolean"]:::app
-
-    App -->|"onNewNote, sidebar, main"| Layout["Layout.tsx\n─────────────\nonNewNote: () =&gt; void\nsidebar: ReactNode\nmain: ReactNode"]:::comp
-
-    Layout -->|"sidebar 슬롯: selectedNoteId, onSelect"| NoteList["NoteList.tsx"]:::comp
-    Layout -->|"main 슬롯: selectedNoteId, isCreating, onDone"| NoteEditor["NoteEditor.tsx\n─────────────\ntitle: string\ncontent: string\nsaving: boolean"]:::comp
-
-    NoteList -->|"note, isSelected, onSelect, onDelete"| NoteItem["NoteItem.tsx\n─────────────\n순수 표시 컴포넌트"]:::comp
-
-    NotesProvider["NotesProvider\n(NotesContext.tsx)\n─────────────\nnotes: Note[]\nloading: boolean\nerror: string | null\ncreateNote / updateNote / deleteNote"]:::ctx
-
-    App -.->|"감싸기 (children)"| NotesProvider
+    App["App.tsx
+selectedNoteId / isCreating"]:::app
+    App -->|"onNewNote, sidebar, main"| Layout["Layout.tsx"]:::comp
+    Layout -->|"sidebar: selectedNoteId, onSelect"| NoteList["NoteList.tsx"]:::comp
+    Layout -->|"main: selectedNoteId, isCreating, onDone"| NoteEditor["NoteEditor.tsx
+title / content / saving"]:::comp
+    NoteList -->|"note, isSelected, onSelect, onDelete"| NoteItem["NoteItem.tsx"]:::comp
+    NoteEditor -->|"tags, input, isFull, onInputChange, onKeyDown, onRemove"| TagChipInput["TagChipInput.tsx"]:::comp
+    NotesProvider["NotesProvider
+notes / loading / error
+createNote / updateNote / deleteNote"]:::ctx
+    useTagInput["useTagInput()
+tags / input / isFull
+commit / removeTag / handleKeyDown"]:::hook
+    App -.->|"wraps"| NotesProvider
     NoteList -.->|"useNotes()"| NotesProvider
     NoteEditor -.->|"useNotes()"| NotesProvider
-
+    NoteEditor -.->|"useTagInput(initialTags)"| useTagInput
     classDef entry fill:#fef3c7,stroke:#d97706
     classDef app fill:#dbeafe,stroke:#3b82f6
     classDef comp fill:#f0fdf4,stroke:#22c55e
     classDef ctx fill:#fce7f3,stroke:#ec4899
+    classDef hook fill:#ede9fe,stroke:#7c3aed
   </div>
 </section>
 
-<!-- ───────────────────────────── 2. Data Flow ───────────────────────────── -->
 <section>
   <h2>2. Data Flow</h2>
   <p class="desc">사용자 액션 → 컴포넌트 → Context → API 함수 → JSON Server → setNotes → 리렌더 사이클.</p>
   <div class="mermaid">
 flowchart LR
-    User(["👤 사용자"])
-
+    User(["User"])
     subgraph UI["UI Layer"]
-        AppUI["App\nhandleNewNote\nhandleSelectNote\nhandleDone"]
-        NE["NoteEditor\nhandleSave()"]
+        AppUI["App"]
+        NE["NoteEditor - handleSave"]
         NL["NoteList"]
         NI["NoteItem"]
+        TCI["TagChipInput"]
     end
-
-    subgraph CTX["Context Layer — NotesContext"]
+    subgraph CTX["Context Layer - NotesContext"]
         ctxCreate["createNote()"]
         ctxUpdate["updateNote()"]
         ctxDelete["deleteNote()"]
-        setNotes[/"setNotes() → 리렌더"/]
+        setNotes[/"setNotes() - re-render"/]
     end
-
-    subgraph API["API Layer — src/api/notes.ts"]
-        apiCreate["createNote()\nPOST /notes\n+ createdAt/updatedAt"]
-        apiUpdate["updateNote()\nPATCH /notes/:id\n+ updatedAt"]
-        apiDelete["deleteNote()\nDELETE /notes/:id"]
-        apiGet["fetchNotes()\nGET /notes"]
+    subgraph API["API Layer - src/api/notes.ts"]
+        apiCreate["createNote() POST /notes"]
+        apiUpdate["updateNote() PATCH /notes/:id"]
+        apiDelete["deleteNote() DELETE /notes/:id"]
+        apiGet["fetchNotes() GET /notes"]
     end
-
-    DB[("db.json\nJSON Server\n:3001")]
-
+    DB[("db.json
+JSON Server :3001")]
     User -->|"새 노트 버튼"| AppUI
     User -->|"노트 클릭"| NI
     User -->|"저장"| NE
     User -->|"삭제"| NI
-
+    User -->|"태그 입력/삭제"| TCI
     AppUI -->|"isCreating=true"| NE
-    NI -->|"onSelect(id)"| NL -->|"handleSelectNote"| AppUI
-    NI -->|"onDelete(id)"| NL -->|"deleteNote(id)"| ctxDelete
-
+    NI -->|"onSelect"| NL -->|"handleSelectNote"| AppUI
+    NI -->|"onDelete"| NL -->|"deleteNote"| ctxDelete
     NE -->|"createNote(title,content)"| ctxCreate
-    NE -->|"updateNote(id, updates)"| ctxUpdate
-
+    NE -->|"updateNote(id,updates)"| ctxUpdate
     ctxCreate --> apiCreate
     ctxUpdate --> apiUpdate
     ctxDelete --> apiDelete
-
-    apiCreate & apiUpdate & apiDelete -->|"fetch"| DB
-    DB -->|"Note 객체 / 204"| setNotes
-
+    apiCreate -->|"POST"| DB
+    apiUpdate -->|"PATCH"| DB
+    apiDelete -->|"DELETE"| DB
+    DB -->|"응답 - setNotes"| setNotes
     DB -->|"Note[]"| apiGet
     apiGet -->|"초기 마운트"| setNotes
     setNotes -->|"notes[]"| NL
@@ -107,39 +103,43 @@ flowchart LR
   </div>
 </section>
 
-<!-- ───────────────────────────── 3. State Map ───────────────────────────── -->
 <section>
   <h2>3. State Map</h2>
-  <p class="desc">3계층 상태 분리. 각 계층이 소유하는 상태값, 뮤테이션 함수, 소비 컴포넌트.</p>
+  <p class="desc">4계층 상태 분리.</p>
   <div class="mermaid">
 graph TB
-    subgraph L1["🗄 서버 상태 — NotesContext.tsx"]
+    subgraph L1["서버 상태 - NotesContext.tsx"]
         notes[/"notes: Note[]"/]
         loading[/"loading: boolean"/]
-        error[/"error: string | null"/]
-        ctxFns["createNote(title, content)\nupdateNote(id, updates)\ndeleteNote(id)"]
+        error[/"error: string or null"/]
+        ctxFns["createNote / updateNote / deleteNote"]
     end
-
-    subgraph L2["🖥 UI 상태 — App.tsx"]
-        selId[/"selectedNoteId: string | null"/]
+    subgraph L2["UI 상태 - App.tsx"]
+        selId[/"selectedNoteId: string or null"/]
         isCreating[/"isCreating: boolean"/]
-        appFns["handleSelectNote(id)\nhandleNewNote()\nhandleDone()"]
+        appFns["handleSelectNote / handleNewNote / handleDone"]
     end
-
-    subgraph L3["📝 폼 로컬 상태 — NoteEditor.tsx"]
+    subgraph L3["폼 로컬 상태 - NoteEditor.tsx"]
         title[/"title: string"/]
         content[/"content: string"/]
         saving[/"saving: boolean"/]
     end
-
-    L1 -->|"useNotes() 훅"| consumers1["NoteList · NoteEditor"]
-    L2 -->|"props: selectedNoteId"| consumers2["NoteList · NoteEditor"]
-    L2 -->|"props: isCreating, onDone"| consumers3["NoteEditor"]
-    L3 -->|"controlled input/textarea"| formUI["제목 input\n내용 textarea\n저장 버튼 disabled"]
-
+    subgraph L4["훅 상태 - useTagInput.ts"]
+        tagList[/"tags: string[]"/]
+        tagInput[/"input: string"/]
+        isFull[/"isFull: boolean"/]
+        hookFns["commit / removeTag / handleKeyDown"]
+    end
+    TCI["TagChipInput"]
+    L1 -->|"useNotes()"| c1["NoteList · NoteEditor"]
+    L2 -->|"selectedNoteId prop"| c2["NoteList · NoteEditor"]
+    L2 -->|"isCreating, onDone props"| NoteEditor2["NoteEditor"]
+    L3 -->|"controlled inputs"| formUI["제목 input / 내용 textarea"]
+    L4 -->|"tags, input, isFull props"| TCI
     style L1 fill:#fce7f3,stroke:#ec4899
     style L2 fill:#dbeafe,stroke:#3b82f6
     style L3 fill:#f0fdf4,stroke:#22c55e
+    style L4 fill:#ede9fe,stroke:#7c3aed
   </div>
 </section>
 
