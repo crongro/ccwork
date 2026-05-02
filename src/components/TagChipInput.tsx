@@ -41,8 +41,9 @@ export function TagChipInput({
         value={input}
         onChange={(e) => onInputChange(e.target.value)}
         onKeyDown={onKeyDown}
-        placeholder="태그 추가"
+        placeholder={tags.length === 0 ? '태그 입력 후 Enter' : ''}
         disabled={isFull}
+        data-testid="tag-chip-input"
         className="flex-1 min-w-[8rem] bg-transparent outline-none text-sm text-[#2b3437] placeholder:text-[#586064]/60"
       />
     </div>

@@ -150,4 +150,32 @@ describe('TagChipInput', () => {
 
     expect(screen.getByRole('textbox')).not.toBeDisabled();
   });
+
+  it('should render input with placeholder "태그 입력 후 Enter" when tags is empty', () => {
+    render(
+      <TagChipInput
+        tags={[]}
+        input=""
+        onInputChange={vi.fn()}
+        onKeyDown={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByPlaceholderText('태그 입력 후 Enter')).toBeInTheDocument();
+  });
+
+  it('should not show placeholder when tags has at least one tag', () => {
+    render(
+      <TagChipInput
+        tags={['work']}
+        input=""
+        onInputChange={vi.fn()}
+        onKeyDown={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByPlaceholderText('태그 입력 후 Enter')).not.toBeInTheDocument();
+  });
 });
