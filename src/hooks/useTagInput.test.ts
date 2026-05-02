@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTagInput } from './useTagInput';
 
@@ -25,6 +25,12 @@ describe('useTagInput', () => {
     const { result } = renderHook(() => useTagInput([]));
 
     expect(result.current.input).toBe('');
+  });
+
+  it('should expose removeTag when initialized', () => {
+    const { result } = renderHook(() => useTagInput([]));
+
+    expect(result.current.removeTag).toEqual(expect.any(Function));
   });
 
   describe('setInput', () => {
@@ -94,6 +100,41 @@ describe('useTagInput', () => {
     });
   });
 
+  describe('removeTag', () => {
+    it('should remove the given tag from tags when it exists', () => {
+      const { result } = renderHook(() => useTagInput(['work', 'study', 'idea']));
+
+      act(() => result.current.removeTag('study'));
+
+      expect(result.current.tags).toEqual(['work', 'idea']);
+    });
+
+    it('should preserve order of remaining tags when removing a middle tag', () => {
+      const { result } = renderHook(() => useTagInput(['a', 'b', 'c', 'd']));
+
+      act(() => result.current.removeTag('b'));
+
+      expect(result.current.tags).toEqual(['a', 'c', 'd']);
+    });
+
+    it('should leave tags as [] when removing the last remaining tag', () => {
+      const { result } = renderHook(() => useTagInput(['only']));
+
+      act(() => result.current.removeTag('only'));
+
+      expect(result.current.tags).toEqual([]);
+    });
+
+    it('should be a no-op without throwing when tag is not in tags', () => {
+      const { result } = renderHook(() => useTagInput(['work']));
+
+      expect(() => {
+        act(() => result.current.removeTag('nonexistent'));
+      }).not.toThrow();
+      expect(result.current.tags).toEqual(['work']);
+    });
+  });
+
   describe('handleKeyDown', () => {
     it('should commit current input to tags when key is Enter', () => {
       const { result } = renderHook(() => useTagInput([]));
@@ -124,5 +165,78 @@ describe('useTagInput', () => {
       expect(result.current.tags).toEqual([]);
       expect(result.current.input).toBe('work');
     });
+
+    it('should remove the last tag when Backspace is pressed and input is empty and tags is non-empty', () => {
+      const { result } = renderHook(() => useTagInput(['work', 'study']));
+
+      act(() => {
+        result.current.handleKeyDown({
+          key: 'Backspace',
+          preventDefault: () => {},
+        } as React.KeyboardEvent<HTMLInputElement>);
+      });
+
+      expect(result.current.tags).toEqual(['work']);
+    });
+
+    it('should be a no-op when Backspace is pressed and tags is empty and input is empty', () => {
+      const { result } = renderHook(() => useTagInput([]));
+
+      expect(() => {
+        act(() => {
+          result.current.handleKeyDown({
+            key: 'Backspace',
+            preventDefault: () => {},
+          } as React.KeyboardEvent<HTMLInputElement>);
+        });
+      }).not.toThrow();
+      expect(result.current.tags).toEqual([]);
+      expect(result.current.input).toBe('');
+    });
+
+    it('should not change tags when Backspace is pressed and input is non-empty', () => {
+      const { result } = renderHook(() => useTagInput(['work']));
+
+      act(() => result.current.setInput('hel'));
+      act(() => {
+        result.current.handleKeyDown({
+          key: 'Backspace',
+          preventDefault: () => {},
+        } as React.KeyboardEvent<HTMLInputElement>);
+      });
+
+      expect(result.current.tags).toEqual(['work']);
+    });
+
+    it('should not call preventDefault when Backspace is pressed and input is non-empty', () => {
+      const { result } = renderHook(() => useTagInput(['work']));
+      const preventDefault = vi.fn();
+
+      act(() => result.current.setInput('hel'));
+      act(() => {
+        result.current.handleKeyDown({
+          key: 'Backspace',
+          preventDefault,
+        } as unknown as React.KeyboardEvent<HTMLInputElement>);
+      });
+
+      expect(preventDefault).not.toHaveBeenCalled();
+    });
+
+    it.each([['a'], ['Delete'], ['ArrowLeft']])(
+      'should not remove the last tag when key is %s and input is empty',
+      (key) => {
+        const { result } = renderHook(() => useTagInput(['work']));
+
+        act(() => {
+          result.current.handleKeyDown({
+            key,
+            preventDefault: () => {},
+          } as React.KeyboardEvent<HTMLInputElement>);
+        });
+
+        expect(result.current.tags).toEqual(['work']);
+      },
+    );
   });
 });
