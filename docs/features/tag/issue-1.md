@@ -90,6 +90,7 @@ interface NoteEditorProps {
 
 ### 정상
 
+<!-- prettier-ignore -->
 1. ✅ [정상] **useTagInput** — 초기화 후 `tags`, `input`, `setInput`, `commit`, `handleKeyDown`을 노출해야 한다
 2. ✅ [정상] **useTagInput** — `initialTags` 인자로부터 `tags`를 초기화해야 한다
 3. ✅ [정상] **useTagInput** — `input`을 빈 문자열로 초기화해야 한다
@@ -105,12 +106,13 @@ interface NoteEditorProps {
 13. ✅ [정상] **fetchNotes** — API 응답에 `tags` 필드가 포함된 경우 그대로 보존해야 한다
 14. ✅ [정상] **fetchNotes** — `tags`가 누락된 경우 `[]`로 기본값 처리해야 한다
 15. ✅ [정상] **api/notes** — `updatedAt`은 오직 `src/api/notes.ts` 내부에서만 설정해야 한다 (태그 전용 헬퍼 없음)
-16. ✅ [정상] **NoteEditor** — `TagChipInput`이 title input의 직속 다음 형제(immediate next sibling) 위치에 렌더링되어야 한다 (사이에 다른 input/textarea/button 없음)
-17. ✅ [정상] **NoteEditor** — input에 `'work'`를 타이핑한 뒤 `Enter`를 누르고 저장 버튼을 클릭하면 `updateNote` payload에 `tags: ['work']`가 포함되어야 한다 (이슈 본문 시나리오 1 통합)
-18. ✅ [정상] **NoteEditor** — 기존 `tags: ['work']`인 노트에서 input에 `'study'`를 타이핑하고 `Enter` 누른 뒤 저장하면 `updateNote` payload에 `tags: ['work', 'study']`가 순서대로 포함되어야 한다 (이슈 본문 시나리오 4 통합)
+24. ✅ [정상] **NoteEditor** — `TagChipInput`이 title input의 직속 다음 형제(immediate next sibling) 위치에 렌더링되어야 한다 (사이에 다른 input/textarea/button 없음)
+25. ✅ [정상] **NoteEditor** — input에 `'work'`를 타이핑한 뒤 `Enter`를 누르고 저장 버튼을 클릭하면 `updateNote` payload에 `tags: ['work']`가 포함되어야 한다 (이슈 본문 시나리오 1 통합)
+26. ✅ [정상] **NoteEditor** — 기존 `tags: ['work']`인 노트에서 input에 `'study'`를 타이핑하고 `Enter` 누른 뒤 저장하면 `updateNote` payload에 `tags: ['work', 'study']`가 순서대로 포함되어야 한다 (이슈 본문 시나리오 4 통합)
 
 ### 경계
 
+<!-- prettier-ignore -->
 16. ✅ [경계] **useTagInput.commit** — 빈 초기 태그에 추가할 수 있어야 한다 (`[]` → "first" → `["first"]`)
 17. ✅ [경계] **useTagInput.commit** — 앞뒤 공백을 trim해야 한다 (`"  work  "` → 태그 `"work"`)
 18. ✅ [경계] **TagChipInput** — `tags`가 `[]`일 때 칩을 하나도 렌더링하지 않아야 한다
@@ -118,11 +120,12 @@ interface NoteEditorProps {
 
 ### 예외
 
+<!-- prettier-ignore -->
 20. ✅ [예외] **useTagInput.commit** — `input === ''`이면 아무 동작도 하지 않아야 한다 (tags 변경 없음)
 21. ✅ [예외] **useTagInput.commit** — 입력이 공백 문자만 있을 때(`"   "`) `tags`는 변경되지 않고 `input`만 `''`로 리셋해야 한다
 22. ✅ [예외] **useTagInput.handleKeyDown** — Enter가 아닌 키(예: `'a'`, `'Backspace'`, `','`)에서는 `commit()`을 호출하지 않아야 한다
 23. ✅ [예외] **api/notes** — 태그 전용 API 함수를 도입하지 않아야 한다 (`addTag`/`removeTag`/`tag*` export 없음)
-24. ✅ [예외] **NoteEditor** — 기존 `tags: ['work']`인 노트에서 빈 input 상태로 `Enter`를 누른 뒤 저장 버튼을 클릭하면 `updateNote` payload의 `tags`는 `['work']` 그대로여야 한다 (이슈 본문 시나리오 3 통합)
+27. ✅ [예외] **NoteEditor** — 기존 `tags: ['work']`인 노트에서 빈 input 상태로 `Enter`를 누른 뒤 저장 버튼을 클릭하면 `updateNote` payload의 `tags`는 `['work']` 그대로여야 한다 (이슈 본문 시나리오 3 통합)
 
 ## AC 커버리지
 
