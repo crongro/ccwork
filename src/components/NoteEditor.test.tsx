@@ -73,6 +73,95 @@ describe('NoteEditor', () => {
     );
   });
 
+  it('should place TagChipInput as immediate next sibling of title input with no other input/textarea/button between', () => {
+    mockNotes = [
+      {
+        id: 'n1',
+        title: '제목',
+        content: '본문',
+        createdAt: '',
+        updatedAt: '',
+        tags: ['work'],
+      },
+    ];
+
+    render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
+
+    const title = screen.getByPlaceholderText('제목');
+    const tagInput = screen.getByPlaceholderText('태그 추가');
+
+    expect(title.nextElementSibling).toContainElement(tagInput);
+  });
+
+  it('should include typed tag in updateNote payload when user types work and presses Enter then clicks save', async () => {
+    mockNotes = [
+      {
+        id: 'n1',
+        title: '제목',
+        content: '본문',
+        createdAt: '',
+        updatedAt: '',
+        tags: [],
+      },
+    ];
+    updateNote.mockResolvedValue(undefined);
+
+    render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
+
+    const tagInput = screen.getByPlaceholderText('태그 추가');
+    await userEvent.type(tagInput, 'work{Enter}');
+    await userEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(updateNote).toHaveBeenCalledWith('n1', expect.objectContaining({ tags: ['work'] }));
+  });
+
+  it('should preserve insertion order in updateNote payload when typing study on note with existing work then save', async () => {
+    mockNotes = [
+      {
+        id: 'n1',
+        title: '제목',
+        content: '본문',
+        createdAt: '',
+        updatedAt: '',
+        tags: ['work'],
+      },
+    ];
+    updateNote.mockResolvedValue(undefined);
+
+    render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
+
+    const tagInput = screen.getByPlaceholderText('태그 추가');
+    await userEvent.type(tagInput, 'study{Enter}');
+    await userEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(updateNote).toHaveBeenCalledWith(
+      'n1',
+      expect.objectContaining({ tags: ['work', 'study'] }),
+    );
+  });
+
+  it('should not change tags in updateNote payload when Enter is pressed on empty input then save', async () => {
+    mockNotes = [
+      {
+        id: 'n1',
+        title: '제목',
+        content: '본문',
+        createdAt: '',
+        updatedAt: '',
+        tags: ['work'],
+      },
+    ];
+    updateNote.mockResolvedValue(undefined);
+
+    render(<NoteEditor selectedNoteId="n1" isCreating={false} onDone={vi.fn()} />);
+
+    const tagInput = screen.getByPlaceholderText('태그 추가');
+    await userEvent.type(tagInput, '{Enter}');
+    await userEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(updateNote).toHaveBeenCalledWith('n1', expect.objectContaining({ tags: ['work'] }));
+  });
+
   it('should save with tags: [] payload when no tag has been added (legacy note)', async () => {
     mockNotes = [
       {

@@ -12,6 +12,9 @@ node_modules/
 dist/
 dist-ssr/
 
+# Coverage
+coverage/
+
 # Local env
 .env
 .env.local
