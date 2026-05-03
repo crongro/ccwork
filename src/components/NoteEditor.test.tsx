@@ -274,6 +274,49 @@ describe('NoteEditor', () => {
     expect(screen.getByTestId('tag-chip-input')).toBeDisabled();
   });
 
+  it('should call createNote with tags when new note is saved after typing a tag and pressing Enter in isCreating mode', async () => {
+    createNote.mockResolvedValue(undefined);
+
+    render(<NoteEditor selectedNoteId={null} isCreating={true} onDone={vi.fn()} />);
+
+    await userEvent.type(screen.getByPlaceholderText('제목'), '새 노트');
+    const tagInput = screen.getByTestId('tag-chip-input');
+    await userEvent.type(tagInput, 'work{Enter}');
+    await userEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(createNote).toHaveBeenCalledWith('새 노트', '', ['work']);
+  });
+
+  it('should call createNote with empty array when new note is saved without adding any tags in isCreating mode', async () => {
+    createNote.mockResolvedValue(undefined);
+
+    render(<NoteEditor selectedNoteId={null} isCreating={true} onDone={vi.fn()} />);
+
+    await userEvent.type(screen.getByPlaceholderText('제목'), '새 노트');
+    await userEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(createNote).toHaveBeenCalledWith('새 노트', '', []);
+  });
+
+  it('should not call createNote when title is empty string in isCreating mode', async () => {
+    render(<NoteEditor selectedNoteId={null} isCreating={true} onDone={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(createNote).not.toHaveBeenCalled();
+  });
+
+  it('should not call updateNote when isCreating is true', async () => {
+    createNote.mockResolvedValue(undefined);
+
+    render(<NoteEditor selectedNoteId={null} isCreating={true} onDone={vi.fn()} />);
+
+    await userEvent.type(screen.getByPlaceholderText('제목'), '새 노트');
+    await userEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(updateNote).not.toHaveBeenCalled();
+  });
+
   it('should show note B tags and clear input when selectedNoteId changes from note A to note B', async () => {
     mockNotes = [
       {
