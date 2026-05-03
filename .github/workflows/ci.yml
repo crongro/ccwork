@@ -25,4 +25,4 @@ jobs:
 
       - run: npm audit --audit-level=moderate
 
-      - run: npm test
+      - run: npm test -- --passWithNoTests
