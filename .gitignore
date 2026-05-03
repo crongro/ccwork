@@ -19,6 +19,13 @@ dist-ssr/
 
 # Claude Code
 .claude/settings.local.json
+.claude/skills/create-pr.skill
+.claude/skills/create-pr/
+
+# Test output
+coverage/
+playwright-report/
+test-results/
 
 # Editor
 .vscode/*
