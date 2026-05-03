@@ -12,6 +12,9 @@ node_modules/
 dist/
 dist-ssr/
 
+# Coverage
+coverage/
+
 # Local env
 .env
 .env.local
@@ -27,6 +30,9 @@ coverage/
 playwright-report/
 test-results/
 
+# JSON Server local data (use db.seed.json as initial state)
+db.json
+
 # Editor
 .vscode/*
 !.vscode/extensions.json
@@ -37,3 +43,10 @@ test-results/
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

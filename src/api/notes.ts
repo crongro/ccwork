@@ -5,7 +5,8 @@ const API_URL = 'http://localhost:3001';
 export async function fetchNotes(): Promise<Note[]> {
   const res = await fetch(`${API_URL}/notes`);
   if (!res.ok) throw new Error('Failed to fetch notes');
-  return res.json();
+  const data = (await res.json()) as Note[];
+  return data.map((n) => ({ ...n, tags: n.tags ?? [] }));
 }
 
 export async function createNote(
