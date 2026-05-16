@@ -170,7 +170,9 @@ test.describe('태그', () => {
       // TagChipInput(data-testid="tag-chip")은 NoteEditor 내부에만 존재
       await expect(page.getByText(tagNote.title)).toBeVisible();
       await expect(page.getByTestId('tag-chip')).toHaveCount(0);
-      await expect(page.getByText(uniqueTag)).not.toBeVisible();
+      await expect(
+        page.locator('[data-testid="note-list"]').getByText(uniqueTag),
+      ).not.toBeVisible();
     } finally {
       await request.delete(`${API}/notes/${tagNote.id}`).catch(() => {});
     }

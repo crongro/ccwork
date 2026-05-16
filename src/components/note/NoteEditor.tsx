@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNotes } from '../context/NotesContext';
-import { useTagInput } from '../hooks/useTagInput';
-import { TagChipInput } from './TagChipInput';
+import { useNotes } from '../../context/NotesContext';
+import { useTagInput } from '../../hooks/tag/useTagInput';
+import { TagChipInput } from '../tag/TagChipInput';
 
 interface NoteEditorProps {
   selectedNoteId: string | null;
