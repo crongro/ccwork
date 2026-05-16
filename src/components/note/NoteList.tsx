@@ -24,7 +24,7 @@ export function NoteList({ selectedNoteId, onSelect, notes }: NoteListProps) {
   }
 
   return (
-    <>
+    <div data-testid="note-list">
       <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground px-1 pb-1">
         노트 {notes.length}개
       </p>
@@ -37,6 +37,6 @@ export function NoteList({ selectedNoteId, onSelect, notes }: NoteListProps) {
           onDelete={deleteNote}
         />
       ))}
-    </>
+    </div>
   );
 }
