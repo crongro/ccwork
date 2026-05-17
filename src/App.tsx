@@ -42,6 +42,7 @@ function AppContent() {
             selectedNoteId={selectedNoteId}
             onSelect={handleSelectNote}
             notes={filteredNotes}
+            selectedTag={selectedTag}
           />
         </>
       }
