@@ -25,7 +25,7 @@ export function NoteList({ selectedNoteId, onSelect, notes, selectedTag = null }
   }
 
   return (
-    <div data-testid="note-list">
+    <div data-testid="note-list" className="flex flex-col gap-2">
       <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground px-1 pb-1">
         노트 {notes.length}개
       </p>
