@@ -19,21 +19,23 @@ npm run lint       # ESLint --fix
 npm run format     # Prettier --write
 npm test           # vitest run (1회 실행)
 npm run test:watch # vitest (watch 모드)
+npm run test:e2e   # Playwright E2E (webServer가 dev 서버 자동 기동)
 ```
 
 ## 아키텍처
 
 ```
 src/
-├── types/note.ts          # Note 인터페이스 (id, title, content, createdAt, updatedAt)
+├── types/note.ts          # Note 인터페이스 (id, title, content, tags[], createdAt, updatedAt)
 ├── api/notes.ts           # fetch 기반 CRUD 함수 (API_URL=http://localhost:3001)
 ├── context/NotesContext.tsx  # 전역 상태: notes[], loading, error + addNote/editNote/removeNote
 ├── components/
 │   ├── Layout.tsx         # sidebar + main 슬롯을 받는 레이아웃
-│   ├── NoteList.tsx       # 노트 목록, 선택 상태 관리
-│   ├── NoteItem.tsx       # 개별 노트 항목
-│   └── NoteEditor.tsx     # 노트 생성/편집 폼
-└── App.tsx                # selectedNoteId, isCreating 상태 — NotesProvider 루트
+│   ├── note/              # NoteList / NoteItem / NoteEditor
+│   └── tag/               # TagPanel (사이드바 칩) / TagChipInput (에디터 입력)
+├── hooks/
+│   └── tag/               # useTagFilter (집계+필터) / useTagInput (입력 로직)
+└── App.tsx                # selectedNoteId, isCreating, selectedTag 상태 — NotesProvider 루트
 ```
 
 **데이터 흐름**: `App` → `NotesProvider`(Context) → 컴포넌트. 모든 API 호출은 `context/NotesContext.tsx`에서만 수행하고, 컴포넌트는 `useNotes()` 훅을 통해 데이터에 접근한다.
@@ -50,11 +52,11 @@ src/
 
 ### 상태 관리 (3계층 분리)
 
-| 계층         | 위치           | 내용                           |
-| ------------ | -------------- | ------------------------------ |
-| 서버 상태    | `NotesContext` | `notes[]`, `loading`, `error`  |
-| UI 상태      | `App.tsx`      | `selectedNoteId`, `isCreating` |
-| 폼 로컬 상태 | `NoteEditor`   | `title`, `content`, `saving`   |
+| 계층         | 위치           | 내용                                          |
+| ------------ | -------------- | --------------------------------------------- |
+| 서버 상태    | `NotesContext` | `notes[]`, `loading`, `error`                 |
+| UI 상태      | `App.tsx`      | `selectedNoteId`, `isCreating`, `selectedTag` |
+| 폼 로컬 상태 | `NoteEditor`   | `title`, `content`, `saving`                  |
 
 컴포넌트는 직접 API를 호출하지 않는다. 반드시 `useNotes()` 훅을 통해 Context 함수를 사용한다.
 
@@ -118,13 +120,9 @@ Conventional Commits 형식을 강제한다 (commitlint + husky).
 
 ## 테스트 환경
 
-- Vitest + jsdom + @testing-library/react
-- `src/test-setup.ts`에서 jest-dom matchers 설정
-- 테스트 실행 전 JSON Server가 필요 없도록 API는 모킹해서 사용
-
-## 향후 추가 예정 (강의 진행 중)
-
-- `Note` 타입에 `tags` 필드 추가
+- **단위/통합**: Vitest + jsdom + @testing-library/react. `src/test-setup.ts`에서 jest-dom matchers 설정. API는 모킹해서 사용 (JSON Server 불필요).
+- **E2E**: Playwright (chromium), `tests/*.spec.ts`. `playwright.config.ts`의 `webServer`가 `npm run dev`를 자동 기동하므로 별도 서버 실행 불필요. baseURL `http://localhost:5173`.
+- E2E는 실제 JSON Server에 POST/DELETE로 테스트 데이터를 만들고 afterEach에서 정리한다.
 
 ---
 
@@ -132,15 +130,15 @@ Conventional Commits 형식을 강제한다 (commitlint + husky).
 
 새 이슈 작업 시 아래 순서를 따른다. **각 단계 완료 후 반드시 인간 승인을 기다린다. 자동으로 다음 단계로 넘어가지 말 것.**
 
-| 단계 | 명령                 | 설명                                                 |
-| ---- | -------------------- | ---------------------------------------------------- |
-| 1    | `/test-scenarios N`  | 시그니처 확정 + 시나리오 도출 (skill)                |
-| 2    | `/tdd-red N`         | 실패 테스트 작성, Red 상태 확인 (skill)              |
-| 3    | `/tdd-green N`       | 최소 구현, 전체 테스트 통과 (skill)                  |
-| 4    | `@ac-verifier N`     | AC 충족 독립 검증 — 테스트 통과 ≠ AC 충족 (agent)    |
-| 5    | `/tdd-refactor N`    | 구조 개선, 깨지면 즉시 롤백 (skill)                  |
-| 6    | `/security-review N` | 타입·보안 점검 (skill)                               |
-| 7    | commit → PR          | `--base feature/<spec>` → squash merge → 이슈 클로즈 |
+| 단계 | 명령                 | 설명                                                           |
+| ---- | -------------------- | -------------------------------------------------------------- |
+| 1    | `/test-scenarios N`  | 시그니처 확정 + 시나리오 도출 (skill)                          |
+| 2    | `/tdd-red N`         | 실패 테스트 작성, Red 상태 확인 (skill)                        |
+| 3    | `/tdd-green N`       | 최소 구현, 전체 테스트 통과 (skill)                            |
+| 4    | `@ac-verifier N`     | AC 충족 독립 검증 — 테스트 통과 ≠ AC 충족 (agent)              |
+| 5    | `/tdd-refactor N`    | 구조 개선, 깨지면 즉시 롤백 (skill)                            |
+| 6    | `/security-review N` | 타입·보안 점검 (skill)                                         |
+| 7    | `/create-pr`         | E2E 통과 시 push + PR 생성 (skill). squash merge → 이슈 클로즈 |
 
 **Claude의 역할**: 현재 이슈의 진행 단계를 파악하고, 완료된 단계 확인 후 다음 단계 명령을 **제안**한다. 실행은 항상 인간이 결정한다.
 
