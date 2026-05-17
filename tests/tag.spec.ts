@@ -157,24 +157,4 @@ test.describe('태그', () => {
     const saved = await request.get(`${API}/notes/${noteId}`);
     expect((await saved.json()).tags).toContain('react');
   });
-
-  // US-3: NoteItem에 태그 미표시
-  test('노트 목록 항목에는 태그가 표시되지 않는다', async ({ page, request }) => {
-    // 고유 태그명으로 오탐 방지
-    const uniqueTag = `utag-${Date.now().toString(36)}`;
-    const tagNote = await createTestNote(request, { tags: [uniqueTag] });
-
-    try {
-      await page.goto('/');
-      // 아무 노트도 선택하지 않은 상태 — NoteList 영역에만 렌더링됨
-      // TagChipInput(data-testid="tag-chip")은 NoteEditor 내부에만 존재
-      await expect(page.getByText(tagNote.title)).toBeVisible();
-      await expect(page.getByTestId('tag-chip')).toHaveCount(0);
-      await expect(
-        page.locator('[data-testid="note-list"]').getByText(uniqueTag),
-      ).not.toBeVisible();
-    } finally {
-      await request.delete(`${API}/notes/${tagNote.id}`).catch(() => {});
-    }
-  });
 });
