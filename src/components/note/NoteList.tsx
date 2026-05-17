@@ -6,9 +6,10 @@ interface NoteListProps {
   selectedNoteId: string | null;
   onSelect: (id: string) => void;
   notes: Note[];
+  selectedTag?: string | null;
 }
 
-export function NoteList({ selectedNoteId, onSelect, notes }: NoteListProps) {
+export function NoteList({ selectedNoteId, onSelect, notes, selectedTag = null }: NoteListProps) {
   const { loading, error, deleteNote } = useNotes();
 
   if (loading) {
@@ -35,6 +36,7 @@ export function NoteList({ selectedNoteId, onSelect, notes }: NoteListProps) {
           isSelected={note.id === selectedNoteId}
           onSelect={onSelect}
           onDelete={deleteNote}
+          selectedTag={selectedTag}
         />
       ))}
     </div>
