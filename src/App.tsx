@@ -1,12 +1,18 @@
 import { useState } from 'react';
-import { NotesProvider } from './context/NotesContext';
+import { NotesProvider, useNotes } from './context/NotesContext';
 import { Layout } from './components/Layout';
-import { NoteList } from './components/NoteList';
-import { NoteEditor } from './components/NoteEditor';
+import { NoteList } from './components/note/NoteList';
+import { NoteEditor } from './components/note/NoteEditor';
+import { TagPanel } from './components/tag/TagPanel';
+import { useTagFilter } from './hooks/tag/useTagFilter';
 
-function App() {
+function AppContent() {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  const { notes } = useNotes();
+  const { allTags, filteredNotes } = useTagFilter(notes, selectedTag);
 
   const handleSelectNote = (id: string) => {
     setSelectedNoteId(id);
@@ -20,22 +26,37 @@ function App() {
 
   const handleDone = () => {
     setIsCreating(false);
-    // 저장 후 선택 상태는 유지
+  };
+
+  const handleSelectTag = (tag: string) => {
+    setSelectedTag((prev) => (prev === tag ? null : tag));
   };
 
   return (
-    <NotesProvider>
-      <Layout
-        onNewNote={handleNewNote}
-        sidebar={<NoteList selectedNoteId={selectedNoteId} onSelect={handleSelectNote} />}
-        main={
-          <NoteEditor
+    <Layout
+      onNewNote={handleNewNote}
+      sidebar={
+        <>
+          <TagPanel allTags={allTags} selectedTag={selectedTag} onSelectTag={handleSelectTag} />
+          <NoteList
             selectedNoteId={selectedNoteId}
-            isCreating={isCreating}
-            onDone={handleDone}
+            onSelect={handleSelectNote}
+            notes={filteredNotes}
+            selectedTag={selectedTag}
           />
-        }
-      />
+        </>
+      }
+      main={
+        <NoteEditor selectedNoteId={selectedNoteId} isCreating={isCreating} onDone={handleDone} />
+      }
+    />
+  );
+}
+
+function App() {
+  return (
+    <NotesProvider>
+      <AppContent />
     </NotesProvider>
   );
 }

@@ -19,9 +19,9 @@ export function TagChipInput({
 }: TagChipInputProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {tags.map((tag, idx) => (
+      {tags.map((tag) => (
         <span
-          key={`${tag}-${idx}`}
+          key={tag}
           data-testid="tag-chip"
           className="group inline-flex items-center gap-[0.35rem] bg-[#dbe4e7] text-[#586064] text-xs rounded-full px-[0.7rem] py-[0.35rem]"
         >

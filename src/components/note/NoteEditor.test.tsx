@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NoteEditor } from './NoteEditor';
-import type { Note } from '../types/note';
+import type { Note } from '../../types/note';
 
 const updateNote = vi.fn();
 const createNote = vi.fn();
 const deleteNote = vi.fn();
 let mockNotes: Note[] = [];
 
-vi.mock('../context/NotesContext', () => ({
+vi.mock('../../context/NotesContext', () => ({
   useNotes: () => ({
     notes: mockNotes,
     loading: false,
