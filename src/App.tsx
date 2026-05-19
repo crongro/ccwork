@@ -4,15 +4,20 @@ import { Layout } from './components/Layout';
 import { NoteList } from './components/note/NoteList';
 import { NoteEditor } from './components/note/NoteEditor';
 import { TagPanel } from './components/tag/TagPanel';
+import { SearchBox } from './components/search/SearchBox';
 import { useTagFilter } from './hooks/tag/useTagFilter';
+import { useNoteFilter } from './hooks/search/useNoteFilter';
 
 function AppContent() {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
 
   const { notes } = useNotes();
-  const { allTags, filteredNotes } = useTagFilter(notes, selectedTag);
+  const { allTags, filteredNotes: tagFilteredNotes } = useTagFilter(notes, selectedTag);
+  const searchFilteredNotes = useNoteFilter(notes, query);
+  const filteredNotes = query.trim() === '' ? tagFilteredNotes : searchFilteredNotes;
 
   const handleSelectNote = (id: string) => {
     setSelectedNoteId(id);
@@ -38,6 +43,7 @@ function AppContent() {
       sidebar={
         <>
           <TagPanel allTags={allTags} selectedTag={selectedTag} onSelectTag={handleSelectTag} />
+          <SearchBox onChange={setQuery} />
           <NoteList
             selectedNoteId={selectedNoteId}
             onSelect={handleSelectNote}
