@@ -15,8 +15,9 @@ function AppContent() {
   const [query, setQuery] = useState('');
 
   const { notes } = useNotes();
-  const { allTags } = useTagFilter(notes, selectedTag);
-  const filteredNotes = useNoteFilter(notes, query);
+  const { allTags, filteredNotes: tagFilteredNotes } = useTagFilter(notes, selectedTag);
+  const searchFilteredNotes = useNoteFilter(notes, query);
+  const filteredNotes = query.trim() === '' ? tagFilteredNotes : searchFilteredNotes;
 
   const handleSelectNote = (id: string) => {
     setSelectedNoteId(id);
